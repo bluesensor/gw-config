@@ -7,6 +7,10 @@ echo "Starting system configuration..."
 echo "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
+# Instalación de paquetes esenciales
+echo "Installing essential packages..."
+sudo apt install -y vim cutecom fail2ban
+
 # Instalación de Oh My Bash
 echo "Installing Oh My Bash..."
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" || {
@@ -14,9 +18,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/mast
     exit 1
 }
 
-# Instalación de Vim y configuración
+# Configuración de Vim
 echo "Setting up Vim environment..."
-sudo apt install -y vim
 git clone --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime
 bash ~/.vim_runtime/install_awesome_vimrc.sh
 

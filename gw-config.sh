@@ -7,16 +7,39 @@ echo "Starting system configuration..."
 echo "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
+# Configuración de UART
+echo "Configuring UART..."
+if ! grep -q "enable_uart=1" /boot/config.txt; then
+    echo "enable_uart=1" | sudo tee -a /boot/config.txt
+else
+    echo "UART already enabled in config.txt"
+fi
+
+sudo systemctl stop serial-getty@ttyS0.service || true
+sudo systemctl disable serial-getty@ttyS0.service || true
+
+# Eliminar console=serial0,115200 de cmdline.txt
+if grep -q "console=serial0,115200" /boot/cmdline.txt; then
+    echo "Removing serial console from cmdline.txt..."
+    sudo sed -i 's/console=serial0,115200//g' /boot/cmdline.txt
+    sudo sed -i 's/  / /g' /boot/cmdline.txt  # Eliminar espacios duplicados
+fi
+
 # Instalación de paquetes esenciales
 echo "Installing essential packages..."
-sudo apt install -y vim cutecom fail2ban python3-pip
+sudo apt install -y vim cutecom fail2ban python3-pip speedtest-cli
 
-# Instalación de Oh My Bash
-echo "Installing Oh My Bash..."
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" || {
-    echo "Oh My Bash installation failed"
-    exit 1
-}
+# Instalación de Oh My Bash (mejorada)
+echo "Checking Oh My Bash installation..."
+if [ ! -d ~/.oh-my-bash ]; then
+    echo "Installing Oh My Bash..."
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" || {
+        echo "Oh My Bash installation failed"
+        exit 1
+    }
+else
+    echo "Oh My Bash already installed. Skipping..."
+fi
 
 # Configuración de Vim
 echo "Setting up Vim environment..."
@@ -81,10 +104,21 @@ for pkg in "${PYTHON_PKGS[@]}"; do
     sudo pip3 install "$pkg"
 done
 
+# Test de velocidad de red
+echo "Running network speed test..."
+if command -v speedtest &>/dev/null; then
+    speedtest || echo "Speedtest completed with warnings (check connection)"
+else
+    echo "Speedtest CLI not installed. Installing now..."
+    sudo apt install -y speedtest-cli && speedtest
+fi
+
 # Aplicar configuraciones
 echo "Applying environment changes..."
 source ~/.bashrc
 
 echo "Configuration completed successfully."
-echo "Please reboot the system to apply all changes:"
-echo "  sudo reboot"
+echo "A system reboot is required to apply UART changes and other configurations."
+echo "Rebooting in 10 seconds... (press Ctrl+C to cancel)"
+sleep 10
+sudo reboot

@@ -9,7 +9,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Instalación de paquetes esenciales
 echo "Installing essential packages..."
-sudo apt install -y vim cutecom fail2ban
+sudo apt install -y vim cutecom fail2ban python3-pip
 
 # Instalación de Oh My Bash
 echo "Installing Oh My Bash..."
@@ -20,8 +20,12 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/mast
 
 # Configuración de Vim
 echo "Setting up Vim environment..."
-git clone --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime
-bash ~/.vim_runtime/install_awesome_vimrc.sh
+if [ ! -d ~/.vim_runtime ]; then
+    git clone --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime
+    bash ~/.vim_runtime/install_awesome_vimrc.sh
+else
+    echo "Vim configuration already exists"
+fi
 
 # Plugins de Vim
 echo "Installing Vim plugins..."
@@ -48,10 +52,34 @@ curl -fsSLo ~/.vim_runtime/my_configs.vim https://gist.githubusercontent.com/bra
 echo "Setting timezone to America/Guayaquil..."
 sudo timedatectl set-timezone America/Guayaquil
 
+# Configuración de RTC (DS3231)
+echo "Configuring RTC module..."
+if [ ! -d "config-rtc" ]; then
+    git clone https://github.com/Seeed-Studio/pi-hats.git config-rtc
+fi
+
+(
+    cd config-rtc/tools || { echo "Failed to enter RTC tools directory"; exit 1; }
+    sudo ./install.sh -u rtc_ds3231
+)
+echo "Checking I2C devices (look for 68 for RTC):"
+sudo i2cdetect -y 1
+
 # Instalación de Docker
 echo "Installing Docker..."
 curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker "$USER"
+
+# Instalación de dependencias Python
+echo "Installing Python libraries..."
+PYTHON_PKGS=(
+    digi-xbee
+    rich
+    schedule
+)
+for pkg in "${PYTHON_PKGS[@]}"; do
+    sudo pip3 install "$pkg"
+done
 
 # Aplicar configuraciones
 echo "Applying environment changes..."

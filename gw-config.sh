@@ -27,7 +27,11 @@ fi
 
 # Instalación de paquetes esenciales
 echo "Installing essential packages..."
-sudo apt install -y vim cutecom fail2ban python3-pip speedtest-cli
+sudo apt install -y vim cutecom fail2ban python3-pip speedtest-cli nmap
+
+# Verificar la versión de Nmap
+echo "Checking Nmap version..."
+nmap --version
 
 # Instalación de Oh My Bash (mejorada)
 echo "Checking Oh My Bash installation..."

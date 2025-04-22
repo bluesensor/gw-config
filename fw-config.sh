@@ -117,15 +117,34 @@ else
     sudo apt install -y speedtest-cli && speedtest
 fi
 
-# Instalación de PM2
-echo "Installing PM2 globally..."
-if ! command -v npm &>/dev/null; then
-    echo "npm is not installed. Installing Node.js and npm..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt install -y nodejs
+# Instalación de NVM (Node Version Manager)
+echo "Installing NVM (Node Version Manager)..."
+if ! command -v nvm &>/dev/null; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+    echo "NVM installed successfully."
+else
+    echo "NVM is already installed. Skipping..."
 fi
 
-sudo npm install pm2 -g
+# Cargar NVM manualmente en caso de que no esté disponible
+if ! command -v nvm &>/dev/null; then
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+fi
+
+# Instalación de Node.js usando NVM
+echo "Installing Node.js version 14.15.5 using NVM..."
+nvm install 14.15.5
+nvm use 14.15.5
+echo "Node.js version $(node --version) installed and activated."
+
+# Instalación de PM2
+echo "Installing PM2 globally..."
+npm install pm2 -g
 echo "PM2 installed successfully."
 
 # Configuración de PM2 Logrotate
